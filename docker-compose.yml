@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: employeemanagement-app
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # env_file:
+    #   - .env
+    volumes:
+      - .:/app
+
+  db:
+    image: postgres
+    container_name: employeemanagement-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123" # quotes added to avoid YAML parsing issues
+      POSTGRES_DB: NewDB
+    volumes:
+      - employeemanagement-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis-stack
+    restart: always
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  employeemanagement-data:
+  redis_data:
